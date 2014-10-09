@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension id="commonmark" status="experimental" xmlns="http://getsymphony.com/schemas/extension/1.0">
+    <name>CommonMark</name>
+    <description>CommonMark text formatter.</description>
+    <repo type="github">https://github.com/jensscherbl/commonmark</repo>
+    <types>
+        <type>Text Formatter</type>
+    </types>
+    <authors>
+        <author>
+            <name github="jensscherbl" symphony="jensscherbl">Jens Scherbl</name>
+        </author>
+    </authors>
+    <releases>
+        <release version="0.1.0" date="2014-10-09" min="2.5.x" max="2.x.x"/>
+    </releases>
+</extension>

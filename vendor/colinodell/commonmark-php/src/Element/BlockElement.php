@@ -16,18 +16,18 @@ namespace ColinODell\CommonMark\Element;
 
 use ColinODell\CommonMark\InlineParser;
 use ColinODell\CommonMark\Reference\ReferenceMap;
-use ColinODell\CommonMark\Util\RegexHelper;
 use ColinODell\CommonMark\Util\ArrayCollection;
+use ColinODell\CommonMark\Util\RegexHelper;
 
 /**
  * Block-level element
  */
 class BlockElement
 {
-    const TYPE_ATX_HEADER = 'ATXHeader';
     const TYPE_BLOCK_QUOTE = 'BlockQuote';
     const TYPE_DOCUMENT = 'Document';
     const TYPE_FENCED_CODE = 'FencedCode';
+    const TYPE_HEADER = 'Header';
     const TYPE_HORIZONTAL_RULE = 'HorizontalRule';
     const TYPE_HTML_BLOCK = 'HtmlBlock';
     const TYPE_INDENTED_CODE = 'IndentedCode';
@@ -35,7 +35,6 @@ class BlockElement
     const TYPE_LIST_ITEM = 'ListItem';
     const TYPE_PARAGRAPH = 'Paragraph';
     const TYPE_REFERENCE_DEF = 'ReferenceDef';
-    const TYPE_SETEXT_HEADER = 'SetextHeader';
 
     const LIST_TYPE_ORDERED = 'Outline';
     const LIST_TYPE_UNORDERED = 'Bullet';
@@ -87,7 +86,7 @@ class BlockElement
     protected $stringContent = '';
 
     /**
-     * @var string[]
+     * @var ArrayCollection|string[]
      */
     protected $strings;
 
@@ -105,16 +104,17 @@ class BlockElement
     /**
      * Constrcutor
      *
-     * @param string $type        Block type (see TYPE_ constants)
-     * @param int    $startLine   Line where the block element starts
-     * @param int    $startColumn Column where the block element starts
+     * @param string   $type        Block type (see TYPE_ constants)
+     * @param int      $startLine   Line where the block element starts
+     * @param int      $startColumn Column where the block element starts
+     * @param int|null $endLine     Line where the block element ends
      */
-    public function __construct($type, $startLine, $startColumn)
+    public function __construct($type, $startLine, $startColumn, $endLine = null)
     {
         $this->type = $type;
         $this->startLine = $startLine;
         $this->startColumn = $startColumn;
-        $this->endLine = $startLine;
+        $this->endLine = $endLine ?: $startLine;
 
         $this->children = new ArrayCollection();
         $this->strings = new ArrayCollection();
@@ -124,7 +124,7 @@ class BlockElement
     /**
      * Returns true if parent block can contain child block
      *
-     * @param mixed $childType The type of child block to add (see TYPE_ constants)
+     * @param string $childType The type of child block to add (see TYPE_ constants)
      *
      * @return bool
      */
@@ -185,7 +185,7 @@ class BlockElement
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getType()
     {
@@ -193,7 +193,7 @@ class BlockElement
     }
 
     /**
-     * @param mixed $type
+     * @param string $type
      *
      * @return $this
      */
@@ -217,7 +217,7 @@ class BlockElement
      *
      * @return bool
      */
-    public function getIsOpen()
+    public function isOpen()
     {
         return $this->open;
     }
@@ -245,7 +245,7 @@ class BlockElement
     /**
      * @return bool
      */
-    public function getIsLastLineBlank()
+    public function isLastLineBlank()
     {
         return $this->lastLineBlank;
     }
@@ -255,21 +255,9 @@ class BlockElement
      *
      * @return $this
      */
-    public function setIsLastLineBlank($value)
+    public function setLastLineBlank($value)
     {
         $this->lastLineBlank = $value;
-
-        return $this;
-    }
-
-    /**
-     * @param bool $value
-     *
-     * @return $this
-     */
-    public function setIsOpen($value)
-    {
-        $this->open = $value;
 
         return $this;
     }
@@ -290,6 +278,26 @@ class BlockElement
     public function setEndLine($lineNumber)
     {
         $this->endLine = $lineNumber;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getEndLine()
+    {
+        return $this->endLine;
+    }
+
+    /**
+     * @param ArrayCollection $inlines
+     *
+     * @return $this
+     */
+    public function setInlineContent(ArrayCollection $inlines)
+    {
+        $this->inlineContent = $inlines;
 
         return $this;
     }
@@ -331,6 +339,18 @@ class BlockElement
     public function getStringContent()
     {
         return $this->stringContent;
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return $this
+     */
+    public function setStringContent($content)
+    {
+        $this->stringContent = $content;
+
+        return $this;
     }
 
     /**
@@ -383,8 +403,7 @@ class BlockElement
                 }
                 break;
 
-            case self::TYPE_ATX_HEADER:
-            case self::TYPE_SETEXT_HEADER:
+            case self::TYPE_HEADER:
             case self::TYPE_HTML_BLOCK:
                 $this->stringContent = implode("\n", $this->strings->toArray());
                 break;
@@ -454,30 +473,6 @@ class BlockElement
 
             default:
                 break;
-        }
-    }
-
-    /**
-     * @param InlineParser $inlineParser
-     * @param ReferenceMap $refMap
-     */
-    public function processInlines(InlineParser $inlineParser, ReferenceMap $refMap)
-    {
-        switch ($this->getType()) {
-            case self::TYPE_PARAGRAPH:
-            case self::TYPE_SETEXT_HEADER:
-            case self::TYPE_ATX_HEADER:
-                $this->inlineContent = $inlineParser->parse(trim($this->stringContent), $refMap);
-                $this->stringContent = '';
-                break;
-            default:
-                break;
-        }
-
-        if ($this->hasChildren()) {
-            foreach ($this->getChildren() as $child) {
-                $child->processInlines($inlineParser, $refMap);
-            }
         }
     }
 }

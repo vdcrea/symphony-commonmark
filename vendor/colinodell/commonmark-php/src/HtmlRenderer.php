@@ -17,35 +17,60 @@ namespace ColinODell\CommonMark;
 use ColinODell\CommonMark\Element\BlockElement;
 use ColinODell\CommonMark\Element\InlineElement;
 use ColinODell\CommonMark\Element\InlineElementInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 /**
  * Renders a parsed AST to HTML
  */
 class HtmlRenderer
 {
-    protected $blockSeparator = "\n";
-    protected $innerSeparator = "\n";
-    protected $softBreak = "\n";
+    /**
+     * @var array
+     */
+    protected $options;
+
+    /**
+     * @param array $options
+     */
+    public function __construct(array $options = array())
+    {
+        $resolver = new OptionsResolver();
+        $this->configureOptions($resolver);
+        $this->options = $resolver->resolve($options);
+    }
+
+    /**
+     * @param OptionsResolverInterface $resolver
+     */
+    protected function configureOptions(OptionsResolverInterface $resolver)
+    {
+        $resolver->setDefaults(array(
+            'blockSeparator' => "\n",
+            'innerSeparator' => "\n",
+            'softBreak' => "\n"
+        ));
+    }
 
     /**
      * @param string $string
      * @param bool   $preserveEntities
      *
      * @return string
-     *
-     * @todo: Can we use simple find/replace instead?
      */
     protected function escape($string, $preserveEntities = false)
     {
         if ($preserveEntities) {
             $string = preg_replace('/[&](?![#](x[a-f0-9]{1,8}|[0-9]{1,8});|[a-z][a-z0-9]{1,31};)/i', '&amp;', $string);
         } else {
-            $string = preg_replace('/[&]/', '&amp;', $string);
+            $string = str_replace('&', '&amp;', $string);
         }
 
-        $string = preg_replace('/[<]/', '&lt;', $string);
-        $string = preg_replace('/[>]/', '&gt;', $string);
-        $string = preg_replace('/["]/', '&quot;', $string);
+        $string = strtr($string, array(
+            '<' => '&lt;',
+            '>' => '&gt;',
+            '"' => '&quot;'
+        ));
 
         return $string;
     }
@@ -87,14 +112,14 @@ class HtmlRenderer
      *
      * @throws \InvalidArgumentException
      */
-    public function renderInline(InlineElementInterface $inline)
+    protected function renderInline(InlineElementInterface $inline)
     {
         $attrs = array();
         switch ($inline->getType()) {
-            case InlineElement::TYPE_STRING:
+            case InlineElement::TYPE_TEXT:
                 return $this->escape($inline->getContents());
             case InlineElement::TYPE_SOFTBREAK:
-                return $this->softBreak;
+                return $this->options['softBreak'];
             case InlineElement::TYPE_HARDBREAK:
                 return $this->inTags('br', array(), '', true) . "\n";
             case InlineElement::TYPE_EMPH:
@@ -102,8 +127,6 @@ class HtmlRenderer
             case InlineElement::TYPE_STRONG:
                 return $this->inTags('strong', array(), $this->renderInlines($inline->getContents()));
             case InlineElement::TYPE_HTML:
-                return $inline->getContents();
-            case InlineElement::TYPE_ENTITY:
                 return $inline->getContents();
             case InlineElement::TYPE_LINK:
                 $attrs['href'] = $this->escape($inline->getAttribute('destination'), true);
@@ -114,7 +137,9 @@ class HtmlRenderer
                 return $this->inTags('a', $attrs, $this->renderInlines($inline->getAttribute('label')));
             case InlineElement::TYPE_IMAGE:
                 $attrs['src'] = $this->escape($inline->getAttribute('destination'), true);
-                $attrs['alt'] = $this->escape($this->renderInlines($inline->getAttribute('label')));
+                $alt = $this->renderInlines($inline->getAttribute('label'));
+                $alt = preg_replace('/\<[^>]*alt="([^"]*)"[^>]*\>/', '$1', $alt);
+                $attrs['alt'] = preg_replace('/\<[^>]*\>/', '', $alt);
                 if ($title = $inline->getAttribute('title')) {
                     $attrs['title'] = $this->escape($title, true);
                 }
@@ -128,11 +153,11 @@ class HtmlRenderer
     }
 
     /**
-     * @param InlineElement[] $inlines
+     * @param InlineElementInterface[] $inlines
      *
      * @return string
      */
-    public function renderInlines($inlines)
+    protected function renderInlines($inlines)
     {
         $result = array();
         foreach ($inlines as $inline) {
@@ -150,7 +175,7 @@ class HtmlRenderer
      *
      * @throws \RuntimeException
      */
-    public function renderBlock(BlockElement $block, $inTightList = false)
+    protected function renderBlock(BlockElement $block, $inTightList = false)
     {
         switch ($block->getType()) {
             case BlockElement::TYPE_DOCUMENT:
@@ -163,16 +188,15 @@ class HtmlRenderer
                 } else {
                     return $this->inTags('p', array(), $this->renderInlines($block->getInlineContent()));
                 }
-                break;
             case BlockElement::TYPE_BLOCK_QUOTE:
                 $filling = $this->renderBlocks($block->getChildren());
                 if ($filling === '') {
-                    return $this->inTags('blockquote', array(), $this->innerSeparator);
+                    return $this->inTags('blockquote', array(), $this->options['innerSeparator']);
                 } else {
                     return $this->inTags(
                         'blockquote',
                         array(),
-                        $this->innerSeparator . $filling . $this->innerSeparator
+                        $this->options['innerSeparator'] . $filling . $this->options['innerSeparator']
                     );
                 }
             case BlockElement::TYPE_LIST_ITEM:
@@ -188,13 +212,12 @@ class HtmlRenderer
                 return $this->inTags(
                     $tag,
                     $attr,
-                    $this->innerSeparator . $this->renderBlocks(
+                    $this->options['innerSeparator'] . $this->renderBlocks(
                         $block->getChildren(),
                         $block->getExtra('tight')
-                    ) . $this->innerSeparator
+                    ) . $this->options['innerSeparator']
                 );
-            case BlockElement::TYPE_ATX_HEADER:
-            case BlockElement::TYPE_SETEXT_HEADER:
+            case BlockElement::TYPE_HEADER:
                 $tag = 'h' . $block->getExtra('level');
 
                 return $this->inTags($tag, array(), $this->renderInlines($block->getInlineContent()));
@@ -237,7 +260,7 @@ class HtmlRenderer
      *
      * @return string
      */
-    public function renderBlocks($blocks, $inTightList = false)
+    protected function renderBlocks($blocks, $inTightList = false)
     {
         $result = array();
         foreach ($blocks as $block) {
@@ -246,7 +269,7 @@ class HtmlRenderer
             }
         }
 
-        return implode($this->blockSeparator, $result);
+        return implode($this->options['blockSeparator'], $result);
     }
 
     /**
@@ -262,4 +285,3 @@ class HtmlRenderer
         return $this->renderBlock($block, $inTightList);
     }
 }
-

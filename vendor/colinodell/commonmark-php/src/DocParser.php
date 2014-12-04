@@ -118,7 +118,7 @@ class DocParser
             $s = '';
         }
 
-        if (!$this->tip->getIsOpen()) {
+        if (!$this->tip->isOpen()) {
             throw new \RuntimeException(sprintf('Attempted to add line (%s) to closed container.', $ln));
         }
 
@@ -224,7 +224,7 @@ class DocParser
         while ($container->hasChildren()) {
             /** @var BlockElement $lastChild */
             $lastChild = $container->getChildren()->last();
-            if (!$lastChild->getIsOpen()) {
+            if (!$lastChild->isOpen()) {
                 break;
             }
 
@@ -243,8 +243,7 @@ class DocParser
 
             switch ($container->getType()) {
                 case BlockElement::TYPE_BLOCK_QUOTE:
-                    $matched = $indent <= 3 && isset($ln[$firstNonSpace]) && $ln[$firstNonSpace] === '>';
-                    if ($matched) {
+                    if ($indent <= 3 && isset($ln[$firstNonSpace]) && $ln[$firstNonSpace] === '>') {
                         $offset = $firstNonSpace + 1;
                         if (isset($ln[$offset]) && $ln[$offset] === ' ') {
                             $offset++;
@@ -276,11 +275,13 @@ class DocParser
                     }
                     break;
 
-                case BlockElement::TYPE_ATX_HEADER:
-                case BlockElement::TYPE_SETEXT_HEADER:
+                case BlockElement::TYPE_HEADER:
                 case BlockElement::TYPE_HORIZONTAL_RULE:
                     // a header can never contain > 1 line, so fail to match:
                     $allMatched = false;
+                    if ($blank) {
+                        $container->setLastLineBlank(true);
+                    }
                     break;
 
                 case BlockElement::TYPE_FENCED_CODE:
@@ -294,13 +295,14 @@ class DocParser
 
                 case BlockElement::TYPE_HTML_BLOCK:
                     if ($blank) {
+                        $container->setLastLineBlank(true);
                         $allMatched = false;
                     }
                     break;
 
                 case BlockElement::TYPE_PARAGRAPH:
                     if ($blank) {
-                        $container->setIsLastLineBlank(true);
+                        $container->setLastLineBlank(true);
                         $allMatched = false;
                     }
                     break;
@@ -329,16 +331,17 @@ class DocParser
             $lineNumber,
             &$closeUnmatchedBlocksAlreadyDone
         ) {
+            $tip = $oldTip;
             // finalize any blocks not matched
-            while (!$closeUnmatchedBlocksAlreadyDone && $oldTip != $lastMatchedContainer && $oldTip !== null) {
-                $self->finalize($oldTip, $lineNumber);
-                $oldTip = $oldTip->getParent();
+            while (!$closeUnmatchedBlocksAlreadyDone && $tip != $lastMatchedContainer && $tip !== null) {
+                $self->finalize($tip, $lineNumber);
+                $tip = $tip->getParent();
             }
             $closeUnmatchedBlocksAlreadyDone = true;
         };
 
         // Check to see if we've hit 2nd blank line; if so break out of list:
-        if ($blank && $container->getIsLastLineBlank()) {
+        if ($blank && $container && $container->isLastLineBlank()) {
             $this->breakOutOfLists($container, $lineNumber);
         }
 
@@ -370,7 +373,7 @@ class DocParser
                 } else { // ident > 4 in a lazy paragraph continuation
                     break;
                 }
-            } elseif (!$blank && $ln[$firstNonSpace] === '>') {
+            } elseif (isset($ln[$firstNonSpace]) && $ln[$firstNonSpace] === '>') {
                 // blockquote
                 $offset = $firstNonSpace + 1;
                 // optional following space
@@ -383,16 +386,13 @@ class DocParser
                 // ATX header
                 $offset = $firstNonSpace + strlen($match[0]);
                 $closeUnmatchedBlocks($this);
-                $container = $this->addChild(BlockElement::TYPE_ATX_HEADER, $lineNumber, $firstNonSpace);
+                $container = $this->addChild(BlockElement::TYPE_HEADER, $lineNumber, $firstNonSpace);
                 $container->setExtra('level', strlen(trim($match[0]))); // number of #s
                 // remove trailing ###s
-                $container->getStrings()->add(
-                    preg_replace(
-                        '/(?:(\\\\#) *#*| *#+) *$/',
-                        '$1',
-                        substr($ln, $offset)
-                    )
-                );
+                $str = substr($ln, $offset);
+                $str = preg_replace('/^ *#+ *$/', '', $str);
+                $str = preg_replace('/ +#+ *$/', '', $str);
+                $container->getStrings()->add($str);
                 break;
             } elseif ($match = Util\RegexHelper::matchAll('/^`{3,}(?!.*`)|^~{3,}(?!.*~)/', $ln, $firstNonSpace)) {
                 // fenced code block
@@ -405,10 +405,10 @@ class DocParser
                 $offset = $firstNonSpace + $fenceLength;
                 break;
             } elseif (Util\RegexHelper::matchAt(
-                    RegexHelper::getInstance()->getHtmlBlockOpenRegex(),
-                    $ln,
-                    $firstNonSpace
-                ) !== null
+                RegexHelper::getInstance()->getHtmlBlockOpenRegex(),
+                $ln,
+                $firstNonSpace
+            ) !== null
             ) {
                 // html block
                 $closeUnmatchedBlocks($this);
@@ -421,7 +421,7 @@ class DocParser
             ) {
                 // setext header line
                 $closeUnmatchedBlocks($this);
-                $container->setType(BlockElement::TYPE_SETEXT_HEADER);
+                $container->setType(BlockElement::TYPE_HEADER);
                 $container->setExtra('level', $match[0][0] === '=' ? 1 : 2);
                 $offset = strlen($ln);
             } elseif (RegexHelper::matchAt(RegexHelper::getInstance()->getHRuleRegex(), $ln, $firstNonSpace) !== null) {
@@ -477,7 +477,7 @@ class DocParser
             $this->tip->getStrings()->count() > 0
         ) {
             // lazy paragraph continuation
-            $this->lastLineBlank = false; // TODO: really? (see line 1152)
+            $this->tip->setLastLineBlank(false);
             $this->addLine($ln, $offset);
         } else { // not a lazy continuation
             //finalize any blocks not matched
@@ -487,7 +487,7 @@ class DocParser
             // and we don't count blanks in fenced code for purposes of tight/loose
             // lists or breaking out of lists.  We also don't set last_line_blank
             // on an empty list item.
-            $container->setIsLastLineBlank(
+            $container->setLastLineBlank(
                 $blank &&
                 !(
                     $container->getType() == BlockElement::TYPE_BLOCK_QUOTE ||
@@ -501,7 +501,7 @@ class DocParser
 
             $cont = $container;
             while ($cont->getParent()) {
-                $cont->getParent()->setIsLastLineBlank(false);
+                $cont->getParent()->setLastLineBlank(false);
                 $cont = $cont->getParent();
             }
 
@@ -518,7 +518,7 @@ class DocParser
                         $ln[$firstNonSpace] == $container->getExtra('fence_char') &&
                         $match = Util\RegexHelper::matchAll('/^(?:`{3,}|~{3,})(?= *$)/', $ln, $firstNonSpace)
                     );
-                    if ($test && strlen($match[0]) >= $container->getExtra('fence_length')) {
+                    if ($test && $container && strlen($match[0]) >= $container->getExtra('fence_length')) {
                         // don't add closing fence to container; instead, close it:
                         $this->finalize($container, $lineNumber);
                     } else {
@@ -526,8 +526,7 @@ class DocParser
                     }
                     break;
 
-                case BlockElement::TYPE_ATX_HEADER:
-                case BlockElement::TYPE_SETEXT_HEADER:
+                case BlockElement::TYPE_HEADER:
                 case BlockElement::TYPE_HORIZONTAL_RULE:
                     // nothing to do; we already added the contents.
                     break;
@@ -537,14 +536,12 @@ class DocParser
                         $this->addLine($ln, $firstNonSpace);
                     } elseif ($blank) {
                         // do nothing
-                    } elseif ($container->getType() != BlockElement::TYPE_HORIZONTAL_RULE && $container->getType(
-                        ) != BlockElement::TYPE_SETEXT_HEADER
+                    } elseif ($container->getType() != BlockElement::TYPE_HORIZONTAL_RULE &&
+                        $container->getType() != BlockElement::TYPE_HEADER
                     ) {
                         // create paragraph container for line
-                        $container = $this->addChild(BlockElement::TYPE_PARAGRAPH, $lineNumber, $firstNonSpace);
+                        $this->addChild(BlockElement::TYPE_PARAGRAPH, $lineNumber, $firstNonSpace);
                         $this->addLine($ln, $firstNonSpace);
-                    } else {
-                        // TODO: throw exception?
                     }
             }
         }
@@ -558,7 +555,7 @@ class DocParser
     {
         $block->finalize($lineNumber, $this->inlineParser, $this->refMap);
 
-        $this->tip = $block->getParent(); // typo on 1310?
+        $this->tip = $block->getParent();
     }
 
     /**
@@ -592,8 +589,55 @@ class DocParser
             $this->finalize($this->tip, $len - 1);
         }
 
-        $this->doc->processInlines($this->inlineParser, $this->refMap);
+        return $this->processInlines($this->doc);
+    }
 
-        return $this->doc;
+    /**
+     * @param BlockElement $block
+     *
+     * @return BlockElement
+     */
+    protected function processInlines(BlockElement $block)
+    {
+        $newBlock = new BlockElement($block->getType(), $block->getStartLine(), $block->getEndLine());
+
+        switch ($block->getType()) {
+            case BlockElement::TYPE_PARAGRAPH:
+                $newBlock->setInlineContent(
+                    $this->inlineParser->parse(trim($block->getStringContent()), $this->refMap)
+                );
+                break;
+            case BlockElement::TYPE_HEADER:
+                $newBlock->setInlineContent(
+                    $this->inlineParser->parse(trim($block->getStringContent()), $this->refMap)
+                );
+                $newBlock->setExtra('level', $block->getExtra('level'));
+                break;
+            case BlockElement::TYPE_LIST:
+                $newBlock->setExtra('list_data', $block->getExtra('list_data'));
+                $newBlock->setExtra('tight', $block->getExtra('tight'));
+                break;
+            case BlockElement::TYPE_FENCED_CODE:
+                $newBlock->setStringContent($block->getStringContent());
+                $newBlock->setExtra('info', $block->getExtra('info'));
+                break;
+            case BlockElement::TYPE_INDENTED_CODE:
+            case BlockElement::TYPE_HTML_BLOCK:
+                $newBlock->setStringContent($block->getStringContent());
+                break;
+            default:
+                break;
+        }
+
+        if ($block->hasChildren()) {
+            $newChildren = array();
+            foreach ($block->getChildren() as $child) {
+                $newChildren[] = $this->processInlines($child);
+            }
+
+            $newBlock->getChildren()->replaceWith($newChildren);
+        }
+
+        return $newBlock;
     }
 }

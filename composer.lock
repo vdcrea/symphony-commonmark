@@ -8,26 +8,27 @@
     "packages": [
         {
             "name": "colinodell/commonmark-php",
-            "version": "0.1.2",
+            "version": "0.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/colinodell/commonmark-php.git",
-                "reference": "d1b296681790a3ec8e9ccf0bf7b0014784309cd5"
+                "reference": "8256de6ff7b73a0633ef5bfa3f72e8964ffce1a5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/colinodell/commonmark-php/zipball/d1b296681790a3ec8e9ccf0bf7b0014784309cd5",
-                "reference": "d1b296681790a3ec8e9ccf0bf7b0014784309cd5",
+                "url": "https://api.github.com/repos/colinodell/commonmark-php/zipball/8256de6ff7b73a0633ef5bfa3f72e8964ffce1a5",
+                "reference": "8256de6ff7b73a0633ef5bfa3f72e8964ffce1a5",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.0"
+                "php": ">=5.3.0",
+                "symfony/options-resolver": "~2.5.6"
             },
             "require-dev": {
                 "erusev/parsedown": "~1.0",
-                "jgm/stmd": "dev-master#2cf0750",
+                "jgm/commonmark": "0.12",
                 "michelf/php-markdown": "~1.4",
-                "phpunit/phpunit": "~4.2.5"
+                "phpunit/phpunit": "~4.3"
             },
             "type": "library",
             "autoload": {
@@ -55,7 +56,59 @@
                 "markdown",
                 "parser"
             ],
-            "time": "2014-09-28 12:54:49"
+            "time": "2014-11-29 01:57:18"
+        },
+        {
+            "name": "symfony/options-resolver",
+            "version": "v2.5.8",
+            "target-dir": "Symfony/Component/OptionsResolver",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/OptionsResolver.git",
+                "reference": "55083336af2c3cf07aca947a5d2c83fd02db17a0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/OptionsResolver/zipball/55083336af2c3cf07aca947a5d2c83fd02db17a0",
+                "reference": "55083336af2c3cf07aca947a5d2c83fd02db17a0",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.3"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.5-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "Symfony\\Component\\OptionsResolver\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Symfony Community",
+                    "homepage": "http://symfony.com/contributors"
+                },
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                }
+            ],
+            "description": "Symfony OptionsResolver Component",
+            "homepage": "http://symfony.com",
+            "keywords": [
+                "config",
+                "configuration",
+                "options"
+            ],
+            "time": "2014-12-02 20:15:53"
         }
     ],
     "packages-dev": [],

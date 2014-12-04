@@ -223,4 +223,21 @@ class ArrayCollection implements \IteratorAggregate, \Countable, \ArrayAccess
     {
         return $this->elements;
     }
+
+    /**
+     * @param array $elements
+     *
+     * @return $this
+     */
+    public function replaceWith(array $elements)
+    {
+        $this->elements = $elements;
+
+        return $this;
+    }
+
+    public function removeGaps()
+    {
+        $this->elements = array_filter($this->elements);
+    }
 }

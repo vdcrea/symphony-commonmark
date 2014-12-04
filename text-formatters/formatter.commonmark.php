@@ -1,27 +1,16 @@
 <?php
 
-use ColinODell\CommonMark\DocParser;
-use ColinODell\CommonMark\HtmlRenderer;
+use ColinODell\CommonMark\CommonMarkConverter;
 
 class FormatterCommonMark extends TextFormatter
 {
-    private static $parser;
-    private static $renderer;
+    private $converter;
 
     public function __construct()
     {
-        if (!self::$parser) {
+        if (!$this->converter) {
 
-            // init parser
-
-            self::$parser = new DocParser();
-        }
-
-        if (!self::$renderer) {
-
-            // init renderer
-
-            self::$renderer = new HtmlRenderer();
+            $this->converter = new CommonMarkConverter();
         }
     }
 
@@ -32,13 +21,6 @@ class FormatterCommonMark extends TextFormatter
 
     public function run($string)
     {
-        // parse & render
-
-        $string = self::$parser->parse($string);
-        $string = self::$renderer->render($string);
-
-        // return
-
-        return $string;
+        return $this->converter->convertToHtml($string);
     }
 }

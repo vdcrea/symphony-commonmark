@@ -12,7 +12,13 @@
         </author>
     </authors>
     <releases>
-        <release version="0.1.1" date="2014-12-04" min="2.5.x" max="2.x.x"/>
+        <release version="0.1.2" date="2014-12-07" min="2.5.x" max="2.x.x">
+- Fixed autoloading issue
+- Fixed accidental newline
+        </release>
+        <release version="0.1.1" date="2014-12-04" min="2.5.x" max="2.x.x">
+- Updated dependencies
+        </release>
         <release version="0.1.0" date="2014-10-09" min="2.5.x" max="2.x.x"/>
     </releases>
 </extension>

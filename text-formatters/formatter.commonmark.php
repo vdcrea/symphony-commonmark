@@ -1,6 +1,6 @@
 <?php
 
-use ColinODell\CommonMark\CommonMarkConverter;
+require_once EXTENSIONS . '/commonmark/vendor/autoload.php';
 
 class FormatterCommonMark extends TextFormatter
 {
@@ -10,7 +10,7 @@ class FormatterCommonMark extends TextFormatter
     {
         if (!$this->converter) {
 
-            $this->converter = new CommonMarkConverter();
+            $this->converter = new ColinODell\CommonMark\CommonMarkConverter();
         }
     }
 
@@ -21,6 +21,6 @@ class FormatterCommonMark extends TextFormatter
 
     public function run($string)
     {
-        return $this->converter->convertToHtml($string);
+        return trim($this->converter->convertToHtml($string));
     }
 }

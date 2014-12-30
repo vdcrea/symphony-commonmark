@@ -10,7 +10,7 @@ class FormatterCommonMark extends TextFormatter
     {
         if (!$this->converter) {
 
-            $this->converter = new ColinODell\CommonMark\CommonMarkConverter();
+            $this->converter = new League\CommonMark\CommonMarkConverter();
         }
     }
 

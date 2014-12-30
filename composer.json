@@ -1,6 +1,6 @@
 {
     "require" : {
 
-        "colinodell/commonmark-php": "*"
+        "league/commonmark": "*"
     }
 }

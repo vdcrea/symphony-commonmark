@@ -7,7 +7,7 @@
 [![Quality Score](https://img.shields.io/scrutinizer/g/thephpleague/commonmark.svg?style=flat-square)](https://scrutinizer-ci.com/g/thephpleague/commonmark)
 [![Total Downloads](https://img.shields.io/packagist/dt/league/commonmark.svg?style=flat-square)](https://packagist.org/packages/league/commonmark)
 
-**league/commonmark** is a Markdown parser for PHP which supports the full [CommonMark] spec.  It is directly based the [CommonMark JS reference implementation][stmd.js] by [John MacFarlane] \([@jgm]\).
+**league/commonmark** is a Markdown parser for PHP which supports the full [CommonMark] spec.  It is directly based the [CommonMark JS reference implementation][commonmark.js] by [John MacFarlane] \([@jgm]\).
 
 ## Goals
 
@@ -25,7 +25,7 @@ This project can be installed via [Composer]:
 $ composer require league/commonmark
 ```
 
-## Usage & Customization
+## Basic Usage
 
 The `CommonMarkConverter` class provides a simple wrapper for converting CommonMark to HTML:
 
@@ -38,39 +38,62 @@ echo $converter->convertToHtml('# Hello World!');
 // <h1>Hello World!</h1>
 ```
 
+## Advanced Usage & Customization
+
 The actual conversion process requires two steps:
 
  1. Parsing the Markdown input into an AST
  2. Rendering the AST document as HTML
 
-You can do this yourself if you wish:
+Although the `CommonMarkConverter` wrapper simplifies this process for you, advanced users will likely want to do this themselves:
 
 ```php
 use League\CommonMark\DocParser;
 use League\CommonMark\Environment;
 use League\CommonMark\HtmlRenderer;
 
+// Obtain a pre-configured Environment with all the CommonMark parsers/renderers ready-to-go
 $environment = Environment::createCommonMarkEnvironment();
+
+// Optional: Add your own parsers/renderers here, if desired
+// For example:  $environment->addInlineParser(new TwitterHandleParser());
+
+// Create the document parser and HTML renderer engines
 $parser = new DocParser($environment);
 $htmlRenderer = new HtmlRenderer($environment);
 
+// Here's our sample input
 $markdown = '# Hello World!';
 
+// 1. Parse the Markdown to AST
 $documentAST = $parser->parse($markdown);
+
+// Optional: If you want to access/modify the AST before rendering, do it here
+
+// 2. Render the AST as HTML
 echo $htmlRenderer->renderBlock($documentAST);
 
+// The output should be:
 // <h1>Hello World!</h1>
 ```
 
-This approach allows you to access (and possibly modify) the AST before it's rendered.
+This approach allows you to access/modify the AST before rendering it.
 
-You can add your own parsers and renderers by [registering them with the `Environment` class](http://commonmark.thephpleague.com/customization/environment/).
+You can also add custom parsers/renderers by [registering them with the `Environment` class](http://commonmark.thephpleague.com/customization/environment/).
+The [documentation][docs] provides several [customization examples][docs-examples] such as:
 
-The [documentation][docs] contains additional details and some helpful examples to get you started.  You can also reference the core CommonMark parsers/renderers as they use the same functionality available to you.
+- [Parsing Twitter handles into profile links][docs-example-twitter]
+- [Converting smilies into emoticon images][docs-example-smilies]
+
+You can also reference the core CommonMark parsers/renderers as they use the same functionality available to you.
+
+## Community Extensions
+
+Custom parsers/renderers can be bundled into extensions which extend CommonMark.  The wiki lists such [community extensions](https://github.com/thephpleague/commonmark/wiki/Community-Extensions) that you may find interesting.
 
 ## Compatibility with CommonMark ##
 
-This project aims to fully support the entire [CommonMark spec]. Other flavors of Markdown may work but are not supported.  Any/all changes made to the [spec][CommonMark spec] or [JS reference implementation][stmd.js] should eventually find their way back into this codebase.
+This project aims to fully support the entire [CommonMark spec]. Other flavors of Markdown may work but are not supported.  Any/all changes made to the [spec][CommonMark spec] or [JS reference implementation][commonmark.js] should eventually find their way back into this codebase.
 
 The following table shows which versions of league/commonmark are compatible with which version of the CommonMark spec:
 
@@ -84,9 +107,19 @@ The following table shows which versions of league/commonmark are compatible wit
     </thead>
     <tbody>
         <tr>
-            <td><strong>0.5.x</strong><br>0.4.0</td>
-            <td><strong><a href="http://spec.commonmark.org/0.13/">0.13</a></strong></td>
-            <td>current spec (as of Dec 15 '14)</td>
+            <td><strong>0.7.0</strong><br>0.6.1</td>
+            <td><strong><a href="http://spec.commonmark.org/0.17/">0.17</a></strong></td>
+            <td>current spec (as of Jan 25 '15)</td>
+        </tr>
+        <tr>
+            <td>0.6.0</td>
+            <td><a href="http://spec.commonmark.org/0.16/">0.16</a><br><a href="http://spec.commonmark.org/0.15/">0.15</a><br><a href="http://spec.commonmark.org/0.14/">0.14</a></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>0.5.x<br>0.4.0</td>
+            <td><a href="http://spec.commonmark.org/0.13/">0.13</a></td>
+            <td></td>
         </tr>
         <tr>
             <td>0.3.0</td>
@@ -140,15 +173,19 @@ SemVer will be followed [closely](http://semver.org/).
 
 If you encounter a bug in the spec, please report it to the [CommonMark] project.  Any resulting fix will eventually be implemented in this project as well.
 
-For now, I'd like to maintain similar logic as the [JS reference implementation][stmd.js] until everything is stable.  I'll gladly accept any contributions which:
+For now, I'd like to maintain similar logic as the [JS reference implementation][commonmark.js] until everything is stable.  I'll gladly accept any contributions which:
 
- * Mirror fixes made to the [reference implementation][stmd.js]
+ * Mirror fixes made to the [reference implementation][commonmark.js]
  * Optimize existing methods or regular expressions
  * Fix issues with adhering to the spec examples
 
-Major refactoring should be avoided for now so that we can easily follow updates made to [the reference implementation][stmd.js].  This restriction will likely be lifted once the CommonMark specs and implementations are considered stable.
+Major refactoring should be avoided for now so that we can easily follow updates made to [the reference implementation][commonmark.js].  This restriction will likely be lifted once the CommonMark specs and implementations are considered stable.
 
 Please see [CONTRIBUTING](https://github.com/thephpleague/commonmark/blob/master/CONTRIBUTING.md) for additional details.
+
+## Security
+
+If you discover any security related issues, please email colinodell@gmail.com instead of using the issue tracker.
 
 ## Credits & Acknowledgements
 
@@ -156,7 +193,7 @@ Please see [CONTRIBUTING](https://github.com/thephpleague/commonmark/blob/master
 - [John MacFarlane][@jgm]
 - [All Contributors]
 
-This code is a port of the [CommonMark JS reference implementation][stmd.js] which is written, maintained and copyrighted by [John MacFarlane].  This project simply wouldn't exist without his work.
+This code is a port of the [CommonMark JS reference implementation][commonmark.js] which is written, maintained and copyrighted by [John MacFarlane].  This project simply wouldn't exist without his work.
 
 ## License ##
 
@@ -164,9 +201,12 @@ This code is a port of the [CommonMark JS reference implementation][stmd.js] whi
 
 [CommonMark]: http://commonmark.org/
 [CommonMark spec]: http://spec.commonmark.org/
-[stmd.js]: https://github.com/jgm/CommonMark/tree/master/js
+[commonmark.js]: https://github.com/jgm/commonmark.js
 [John MacFarlane]: http://johnmacfarlane.net
 [docs]: http://commonmark.thephpleague.com/
+[docs-examples]: http://commonmark.thephpleague.com/customization/overview/#examples
+[docs-example-twitter]: http://commonmark.thephpleague.com/customization/inline-parsing#example-1---twitter-handles
+[docs-example-smilies]: http://commonmark.thephpleague.com/customization/inline-parsing#example-2---emoticons
 [All Contributors]: https://github.com/thephpleague/commonmark/contributors
 [@colinodell]: https://github.com/colinodell
 [@jgm]: https://github.com/jgm

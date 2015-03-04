@@ -5,7 +5,7 @@
  *
  * (c) Colin O'Dell <colinodell@gmail.com>
  *
- * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmarkjs)
+ * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmark-js)
  *  - (c) John MacFarlane
  *
  * For the full copyright and license information, please view the LICENSE
@@ -23,22 +23,22 @@ class FencedCode extends AbstractBlock
     /**
      * @var string
      */
-    private $info;
+    protected $info;
 
     /**
      * @var int
      */
-    private $length;
+    protected $length;
 
     /**
      * @var string
      */
-    private $char;
+    protected $char;
 
     /**
      * @var int
      */
-    private $offset;
+    protected $offset;
 
     /**
      * @param int $length
@@ -164,6 +164,14 @@ class FencedCode extends AbstractBlock
 
     public function matchesNextLine(Cursor $cursor)
     {
+        if ($this->length === -1) {
+            if ($cursor->isBlank()) {
+                $this->lastLineBlank = true;
+            }
+
+            return false;
+        }
+
         // Skip optional spaces of fence offset
         $cursor->advanceWhileMatches(' ', $this->offset);
 
@@ -198,7 +206,7 @@ class FencedCode extends AbstractBlock
             $match = RegexHelper::matchAll('/^(?:`{3,}|~{3,})(?= *$)/', $cursor->getLine(), $cursor->getFirstNonSpacePosition());
             if (strlen($match[0]) >= $container->getLength()) {
                 // don't add closing fence to container; instead, close it:
-                $container->finalize($context);
+                $this->setLength(-1); // -1 means we've passed closer
 
                 return;
             }

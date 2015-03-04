@@ -5,7 +5,7 @@
  *
  * (c) Colin O'Dell <colinodell@gmail.com>
  *
- * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmarkjs)
+ * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmark-js)
  *  - (c) John MacFarlane
  *
  * For the full copyright and license information, please view the LICENSE
@@ -2283,7 +2283,7 @@ class Html5Entities
 
         $entity = '&#' . $number . ';';
 
-        $converted = html_entity_decode($entity, ENT_COMPAT, 'UTF-8');
+        $converted = mb_decode_numericentity($entity, array(0x0, 0x2FFFF, 0, 0xFFFF), 'UTF-8');
 
         if ($converted === $entity) {
             return self::fromHex('fffd');

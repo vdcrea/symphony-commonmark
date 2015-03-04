@@ -7,22 +7,22 @@ class HtmlElement
     /**
      * @var string
      */
-    private $tagName;
+    protected $tagName;
 
     /**
      * @var string[]
      */
-    private $attributes = array();
+    protected $attributes = array();
 
     /**
      * @var HtmlElement|HtmlElement[]|string
      */
-    private $contents;
+    protected $contents;
 
     /**
      * @var bool
      */
-    private $selfClosing = false;
+    protected $selfClosing = false;
 
     /**
      * @param string $tagName
@@ -34,8 +34,9 @@ class HtmlElement
     {
         $this->tagName = $tagName;
         $this->attributes = $attributes;
-        $this->contents = $contents;
         $this->selfClosing = $selfClosing;
+
+        $this->setContents($contents);
     }
 
     /**
@@ -106,7 +107,7 @@ class HtmlElement
      */
     public function setContents($contents)
     {
-        $this->contents = $contents;
+        $this->contents = !is_null($contents) ? $contents : '';
 
         return $this;
     }
@@ -122,7 +123,7 @@ class HtmlElement
             $result .= ' ' . $key . '="' . $value . '"';
         }
 
-        if ($this->contents) {
+        if ($this->contents !== '') {
             $result .= '>' . $this->getContents(true) . '</' . $this->tagName . '>';
         } elseif ($this->selfClosing) {
             $result .= ' />';

@@ -5,7 +5,7 @@
  *
  * (c) Colin O'Dell <colinodell@gmail.com>
  *
- * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmarkjs)
+ * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmark-js)
  *  - (c) John MacFarlane
  *
  * For the full copyright and license information, please view the LICENSE
@@ -13,8 +13,6 @@
  */
 
 namespace League\CommonMark\Reference;
-
-use League\CommonMark\Util\UnicodeCaseFolder;
 
 /**
  * Link reference
@@ -88,12 +86,6 @@ class Reference
         // Collapse internal whitespace to single space and remove
         // leading/trailing whitespace
         $string = preg_replace('/\s+/', '', trim($string));
-
-        // Convert to upper-case using Unicode case folding
-        // Use an alternate method if mb_strtoupper isn't available
-        if (!function_exists('mb_strtoupper')) {
-            return UnicodeCaseFolder::toUpperCase($string);
-        }
 
         return mb_strtoupper($string, 'UTF-8');
     }

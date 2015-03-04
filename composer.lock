@@ -8,19 +8,20 @@
     "packages": [
         {
             "name": "league/commonmark",
-            "version": "0.5.1",
+            "version": "0.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/commonmark.git",
-                "reference": "356dbd781b898163994c8e094b902d74dcdafcca"
+                "reference": "7b428e962fb83a13715e057c65c88873d3165df0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/356dbd781b898163994c8e094b902d74dcdafcca",
-                "reference": "356dbd781b898163994c8e094b902d74dcdafcca",
+                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/7b428e962fb83a13715e057c65c88873d3165df0",
+                "reference": "7b428e962fb83a13715e057c65c88873d3165df0",
                 "shasum": ""
             },
             "require": {
+                "ext-mbstring": "*",
                 "php": ">=5.3.3"
             },
             "replace": {
@@ -28,17 +29,14 @@
             },
             "require-dev": {
                 "erusev/parsedown": "~1.0",
-                "jgm/commonmark": "0.13",
+                "jgm/commonmark": "0.17",
                 "michelf/php-markdown": "~1.4",
                 "phpunit/phpunit": "~4.3"
-            },
-            "suggest": {
-                "ext-mbstring": "Enables faster performance when normalizing link references"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "0.5.x-dev"
+                    "dev-master": "0.8-dev"
                 }
             },
             "autoload": {
@@ -65,7 +63,7 @@
                 "markdown",
                 "parser"
             ],
-            "time": "2014-12-27 15:58:34"
+            "time": "2015-03-01 21:29:05"
         }
     ],
     "packages-dev": [],

@@ -5,7 +5,7 @@
  *
  * (c) Colin O'Dell <colinodell@gmail.com>
  *
- * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmarkjs)
+ * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmark-js)
  *  - (c) John MacFarlane
  *
  * For the full copyright and license information, please view the LICENSE
@@ -14,19 +14,32 @@
 
 namespace League\CommonMark;
 
-use League\CommonMark\Block\Parser as BlockParser;
 use League\CommonMark\Block\Parser\BlockParserInterface;
-use League\CommonMark\Block\Renderer as BlockRenderer;
 use League\CommonMark\Block\Renderer\BlockRendererInterface;
-use League\CommonMark\Inline\Parser as InlineParser;
+use League\CommonMark\Extension\CommonMarkCoreExtension;
+use League\CommonMark\Extension\ExtensionInterface;
+use League\CommonMark\Extension\MiscExtension;
 use League\CommonMark\Inline\Parser\InlineParserInterface;
-use League\CommonMark\Inline\Processor\EmphasisProcessor;
 use League\CommonMark\Inline\Processor\InlineProcessorInterface;
-use League\CommonMark\Inline\Renderer as InlineRenderer;
 use League\CommonMark\Inline\Renderer\InlineRendererInterface;
 
 class Environment
 {
+    /**
+     * @var ExtensionInterface[]
+     */
+    protected $extensions = array();
+
+    /**
+     * @var MiscExtension
+     */
+    protected $miscExtension;
+
+    /**
+     * @var bool
+     */
+    protected $extensionsInitialized = false;
+
     /**
      * @var BlockParserInterface[]
      */
@@ -58,17 +71,91 @@ class Environment
     protected $inlineRenderersByClass = array();
 
     /**
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * @var string
+     */
+    protected $inlineParserCharacterRegex;
+
+    public function __construct(array $config = array())
+    {
+        $this->miscExtension = new MiscExtension();
+        $this->config = $config;
+    }
+
+    /**
+     * @param array $config
+     */
+    public function mergeConfig(array $config = array())
+    {
+        if ($this->extensionsInitialized) {
+            throw new \RuntimeException('Failed to modify configuration - extensions have already been initialized');
+        }
+
+        $this->config = array_replace_recursive($this->config, $config);
+    }
+
+    /**
+     * @param array $config
+     */
+    public function setConfig(array $config = array())
+    {
+        if ($this->extensionsInitialized) {
+            throw new \RuntimeException('Failed to modify configuration - extensions have already been initialized');
+        }
+
+        $this->config = $config;
+    }
+
+    /**
+     * @param string|null $key
+     * @param mixed|null $default
+     *
+     * @return mixed|null
+     */
+    public function getConfig($key = null, $default = null)
+    {
+        // accept a/b/c as ['a']['b']['c']
+        if (strpos($key, '/')) {
+            $keyArr = explode('/', $key);
+            $data = $this->config;
+            foreach ($keyArr as $k) {
+                if (!is_array($data) || !isset($data[$k])) {
+                    return $default;
+                }
+
+                $data = $data[$k];
+            }
+
+            return $data;
+        }
+
+        if ($key === null) {
+            return $this->config;
+        }
+
+        if (!isset($this->config[$key])) {
+            return $default;
+        }
+
+        return $this->config[$key];
+    }
+
+    /**
      * @param BlockParserInterface $parser
      *
      * @return $this
      */
     public function addBlockParser(BlockParserInterface $parser)
     {
-        if ($parser instanceof EnvironmentAwareInterface) {
-            $parser->setEnvironment($this);
+        if ($this->extensionsInitialized) {
+            throw new \RuntimeException('Failed to add block parser - extensions have already been initialized');
         }
 
-        $this->blockParsers[$parser->getName()] = $parser;
+        $this->miscExtension->addBlockParser($parser);
 
         return $this;
     }
@@ -81,7 +168,11 @@ class Environment
      */
     public function addBlockRenderer($blockClass, BlockRendererInterface $blockRenderer)
     {
-        $this->blockRenderersByClass[$blockClass] = $blockRenderer;
+        if ($this->extensionsInitialized) {
+            throw new \RuntimeException('Failed to add block renderer - extensions have already been initialized');
+        }
+
+        $this->miscExtension->addBlockRenderer($blockClass, $blockRenderer);
 
         return $this;
     }
@@ -93,15 +184,11 @@ class Environment
      */
     public function addInlineParser(InlineParserInterface $parser)
     {
-        if ($parser instanceof EnvironmentAwareInterface) {
-            $parser->setEnvironment($this);
+        if ($this->extensionsInitialized) {
+            throw new \RuntimeException('Failed to add inline parser - extensions have already been initialized');
         }
 
-        $this->inlineParsers[$parser->getName()] = $parser;
-
-        foreach ($parser->getCharacters() as $character) {
-            $this->inlineParsersByCharacter[$character][] = $parser;
-        }
+        $this->miscExtension->addInlineParser($parser);
 
         return $this;
     }
@@ -113,7 +200,11 @@ class Environment
      */
     public function addInlineProcessor(InlineProcessorInterface $processor)
     {
-        $this->inlineProcessors[] = $processor;
+        if ($this->extensionsInitialized) {
+            throw new \RuntimeException('Failed to add inline processor - extensions have already been initialized');
+        }
+
+        $this->miscExtension->addInlineProcessor($processor);
 
         return $this;
     }
@@ -126,7 +217,11 @@ class Environment
      */
     public function addInlineRenderer($inlineClass, InlineRendererInterface $renderer)
     {
-        $this->inlineRenderersByClass[$inlineClass] = $renderer;
+        if ($this->extensionsInitialized) {
+            throw new \RuntimeException('Failed to add inline renderer - extensions have already been initialized');
+        }
+
+        $this->miscExtension->addInlineRenderer($inlineClass, $renderer);
 
         return $this;
     }
@@ -136,6 +231,10 @@ class Environment
      */
     public function getBlockParsers()
     {
+        if (!$this->extensionsInitialized) {
+            $this->initializeExtensions();
+        }
+
         return $this->blockParsers;
     }
 
@@ -146,6 +245,10 @@ class Environment
      */
     public function getBlockRendererForClass($blockClass)
     {
+        if (!$this->extensionsInitialized) {
+            $this->initializeExtensions();
+        }
+
         if (!isset($this->blockRenderersByClass[$blockClass])) {
             return null;
         }
@@ -160,6 +263,10 @@ class Environment
      */
     public function getInlineParser($name)
     {
+        if (!$this->extensionsInitialized) {
+            $this->initializeExtensions();
+        }
+
         return $this->inlineParsers[$name];
     }
 
@@ -168,6 +275,10 @@ class Environment
      */
     public function getInlineParsers()
     {
+        if (!$this->extensionsInitialized) {
+            $this->initializeExtensions();
+        }
+
         return $this->inlineParsers;
     }
 
@@ -178,6 +289,10 @@ class Environment
      */
     public function getInlineParsersForCharacter($character)
     {
+        if (!$this->extensionsInitialized) {
+            $this->initializeExtensions();
+        }
+
         if (!isset($this->inlineParsersByCharacter[$character])) {
             return null;
         }
@@ -190,6 +305,10 @@ class Environment
      */
     public function getInlineProcessors()
     {
+        if (!$this->extensionsInitialized) {
+            $this->initializeExtensions();
+        }
+
         return $this->inlineProcessors;
     }
 
@@ -200,6 +319,10 @@ class Environment
      */
     public function getInlineRendererForClass($inlineClass)
     {
+        if (!$this->extensionsInitialized) {
+            $this->initializeExtensions();
+        }
+
         if (!isset($this->inlineRenderersByClass[$inlineClass])) {
             return null;
         }
@@ -209,7 +332,135 @@ class Environment
 
     public function createInlineParserEngine()
     {
+        if (!$this->extensionsInitialized) {
+            $this->initializeExtensions();
+        }
+
         return new InlineParserEngine($this);
+    }
+
+    /**
+     * Get all registered extensions
+     *
+     * @return ExtensionInterface[]
+     */
+    public function getExtensions()
+    {
+        return $this->extensions;
+    }
+
+    /**
+     * Add a single extension
+     *
+     * @param ExtensionInterface $extension
+     *
+     * @return $this
+     */
+    public function addExtension(ExtensionInterface $extension)
+    {
+        if ($this->extensionsInitialized) {
+            throw new \RuntimeException('Failed to add extension - extensions have already been initialized');
+        }
+
+        $this->extensions[$extension->getName()] = $extension;
+
+        return $this;
+    }
+
+    protected function initializeExtensions()
+    {
+        // Only initialize them once
+        if ($this->extensionsInitialized) {
+            return;
+        }
+
+        $this->extensionsInitialized = true;
+
+        // Initialize all the registered extensions
+        foreach ($this->extensions as $extension) {
+            $this->initializeExtension($extension);
+        }
+
+        // Also initialize those one-off classes
+        $this->initializeExtension($this->miscExtension);
+
+        // Lastly, let's build a regex which matches all inline characters
+        // This will enable a huge performance boost with inline parsing
+        $this->buildInlineParserCharacterRegex();
+    }
+
+    /**
+     * @param ExtensionInterface $extension
+     */
+    protected function initializeExtension(ExtensionInterface $extension)
+    {
+        $this->initalizeBlockParsers($extension->getBlockParsers());
+        $this->initializeBlockRenderers($extension->getBlockRenderers());
+        $this->initializeInlineParsers($extension->getInlineParsers());
+        $this->initializeInlineProcessors($extension->getInlineProcessors());
+        $this->initializeInlineRenderers($extension->getInlineRenderers());
+    }
+
+    /**
+     * @param BlockParserInterface[] $blockParsers
+     */
+    private function initalizeBlockParsers($blockParsers)
+    {
+        foreach ($blockParsers as $blockParser) {
+            if ($blockParser instanceof EnvironmentAwareInterface) {
+                $blockParser->setEnvironment($this);
+            }
+
+            $this->blockParsers[$blockParser->getName()] = $blockParser;
+        }
+    }
+
+    /**
+     * @param BlockRendererInterface[] $blockRenderers
+     */
+    private function initializeBlockRenderers($blockRenderers)
+    {
+        foreach ($blockRenderers as $class => $blockRenderer) {
+            $this->blockRenderersByClass[$class] = $blockRenderer;
+        }
+    }
+
+    /**
+     * @param InlineParserInterface[] $inlineParsers
+     */
+    private function initializeInlineParsers($inlineParsers)
+    {
+        foreach ($inlineParsers as $inlineParser) {
+            if ($inlineParser instanceof EnvironmentAwareInterface) {
+                $inlineParser->setEnvironment($this);
+            }
+
+            $this->inlineParsers[$inlineParser->getName()] = $inlineParser;
+
+            foreach ($inlineParser->getCharacters() as $character) {
+                $this->inlineParsersByCharacter[$character][] = $inlineParser;
+            }
+        }
+    }
+
+    /**
+     * @param InlineProcessorInterface[] $inlineProcessors
+     */
+    private function initializeInlineProcessors($inlineProcessors)
+    {
+        foreach ($inlineProcessors as $inlineProcessor) {
+            $this->inlineProcessors[] = $inlineProcessor;
+        }
+    }
+
+    /**
+     * @param InlineRendererInterface[] $inlineRenderers
+     */
+    private function initializeInlineRenderers($inlineRenderers)
+    {
+        foreach ($inlineRenderers as $class => $inlineRenderer) {
+            $this->inlineRenderersByClass[$class] = $inlineRenderer;
+        }
     }
 
     /**
@@ -218,76 +469,32 @@ class Environment
     public static function createCommonMarkEnvironment()
     {
         $environment = new static();
-
-        $blockParsers = array(
-            // This order is important
-            new BlockParser\IndentedCodeParser(),
-            new BlockParser\LazyParagraphParser(),
-            new BlockParser\BlockQuoteParser(),
-            new BlockParser\ATXHeaderParser(),
-            new BlockParser\FencedCodeParser(),
-            new BlockParser\HtmlBlockParser(),
-            new BlockParser\SetExtHeaderParser(),
-            new BlockParser\HorizontalRuleParser(),
-            new BlockParser\ListParser(),
-        );
-
-        foreach ($blockParsers as $blockParser) {
-            $environment->addBlockParser($blockParser);
-        }
-
-        $inlineParsers = array(
-            new InlineParser\NewlineParser(),
-            new InlineParser\BacktickParser(),
-            new InlineParser\EscapableParser(),
-            new InlineParser\EntityParser(),
-            new InlineParser\EmphasisParser(),
-            new InlineParser\AutolinkParser(),
-            new InlineParser\RawHtmlParser(),
-            new InlineParser\CloseBracketParser(),
-            new InlineParser\OpenBracketParser(),
-            new InlineParser\BangParser(),
-        );
-
-        foreach ($inlineParsers as $inlineParser) {
-            $environment->addInlineParser($inlineParser);
-        }
-
-        $environment->addInlineProcessor(new EmphasisProcessor());
-
-        $blockRenderers = array(
-            'League\CommonMark\Block\Element\BlockQuote'          => new BlockRenderer\BlockQuoteRenderer(),
-            'League\CommonMark\Block\Element\Document'            => new BlockRenderer\DocumentRenderer(),
-            'League\CommonMark\Block\Element\FencedCode'          => new BlockRenderer\FencedCodeRenderer(),
-            'League\CommonMark\Block\Element\Header'              => new BlockRenderer\HeaderRenderer(),
-            'League\CommonMark\Block\Element\HorizontalRule'      => new BlockRenderer\HorizontalRuleRenderer(),
-            'League\CommonMark\Block\Element\HtmlBlock'           => new BlockRenderer\HtmlBlockRenderer(),
-            'League\CommonMark\Block\Element\IndentedCode'        => new BlockRenderer\IndentedCodeRenderer(),
-            'League\CommonMark\Block\Element\ListBlock'           => new BlockRenderer\ListBlockRenderer(),
-            'League\CommonMark\Block\Element\ListItem'            => new BlockRenderer\ListItemRenderer(),
-            'League\CommonMark\Block\Element\Paragraph'           => new BlockRenderer\ParagraphRenderer(),
-            'League\CommonMark\Block\Element\ReferenceDefinition' => new BlockRenderer\ReferenceDefinitionRenderer(),
-        );
-
-        foreach ($blockRenderers as $class => $renderer) {
-            $environment->addBlockRenderer($class, $renderer);
-        }
-
-        $inlineRenderers = array(
-            'League\CommonMark\Inline\Element\Code'     => new InlineRenderer\CodeRenderer(),
-            'League\CommonMark\Inline\Element\Emphasis' => new InlineRenderer\EmphasisRenderer(),
-            'League\CommonMark\Inline\Element\Html'     => new InlineRenderer\RawHtmlRenderer(),
-            'League\CommonMark\Inline\Element\Image'    => new InlineRenderer\ImageRenderer(),
-            'League\CommonMark\Inline\Element\Link'     => new InlineRenderer\LinkRenderer(),
-            'League\CommonMark\Inline\Element\Newline'  => new InlineRenderer\NewlineRenderer(),
-            'League\CommonMark\Inline\Element\Strong'   => new InlineRenderer\StrongRenderer(),
-            'League\CommonMark\Inline\Element\Text'     => new InlineRenderer\TextRenderer(),
-        );
-
-        foreach ($inlineRenderers as $class => $renderer) {
-            $environment->addInlineRenderer($class, $renderer);
-        }
+        $environment->addExtension(new CommonMarkCoreExtension());
+        $environment->mergeConfig(array(
+            'renderer' => array(
+                'block_separator' => "\n",
+                'inner_separator' => "\n",
+                'soft_break' => "\n",
+            )
+        ));
 
         return $environment;
+    }
+
+    /**
+     * Regex which matches any character that an inline parser might be interested in
+     *
+     * @return string
+     */
+    public function getInlineParserCharacterRegex()
+    {
+        return $this->inlineParserCharacterRegex;
+    }
+
+    private function buildInlineParserCharacterRegex()
+    {
+        $chars = array_keys($this->inlineParsersByCharacter);
+
+        $this->inlineParserCharacterRegex = '/^[^' . preg_quote(implode('', $chars)) . ']+/';
     }
 }

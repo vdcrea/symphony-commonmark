@@ -5,7 +5,7 @@
  *
  * (c) Colin O'Dell <colinodell@gmail.com>
  *
- * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmarkjs)
+ * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmark-js)
  *  - (c) John MacFarlane
  *
  * For the full copyright and license information, please view the LICENSE
@@ -29,16 +29,19 @@ class CommonMarkConverter
     /**
      * The html renderer instance.
      *
-     * @var \League\CommonMark\HtmlRenderer
+     * @var \League\CommonMark\HtmlRendererInterface
      */
     protected $htmlRenderer;
 
     /**
      * Create a new commonmark converter instance.
+     *
+     * @param array $config
      */
-    public function __construct()
+    public function __construct(array $config = array())
     {
         $environment = Environment::createCommonMarkEnvironment();
+        $environment->mergeConfig($config);
         $this->docParser = new DocParser($environment);
         $this->htmlRenderer = new HtmlRenderer($environment);
     }

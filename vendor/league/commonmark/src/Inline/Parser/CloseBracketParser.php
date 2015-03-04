@@ -5,7 +5,7 @@
  *
  * (c) Colin O'Dell <colinodell@gmail.com>
  *
- * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmarkjs)
+ * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmark-js)
  *  - (c) John MacFarlane
  *
  * For the full copyright and license information, please view the LICENSE
@@ -22,7 +22,6 @@ use League\CommonMark\EnvironmentAwareInterface;
 use League\CommonMark\Inline\Element\AbstractWebResource;
 use League\CommonMark\InlineParserContext;
 use League\CommonMark\Inline\Element\Image;
-use League\CommonMark\Inline\Element\InlineCollection;
 use League\CommonMark\Inline\Element\Link;
 use League\CommonMark\Reference\Reference;
 use League\CommonMark\Reference\ReferenceMap;
@@ -34,7 +33,7 @@ class CloseBracketParser extends AbstractInlineParser implements EnvironmentAwar
     /**
      * @var Environment
      */
-    private $environment;
+    protected $environment;
 
     /**
      * @return string[]
@@ -102,7 +101,7 @@ class CloseBracketParser extends AbstractInlineParser implements EnvironmentAwar
             $inlineContext->getDelimiterStack()->removeEarlierMatches('[');
         }
 
-        $inlines->add($this->createInline($link['url'], new InlineCollection($labelInlines), $link['title'], $isImage));
+        $inlines->add($this->createInline($link['url'], $labelInlines, $link['title'], $isImage));
 
         return true;
     }
@@ -120,7 +119,7 @@ class CloseBracketParser extends AbstractInlineParser implements EnvironmentAwar
      * @param int $start
      * @param int $end
      */
-    private function nullify(ArrayCollection $collection, $start, $end)
+    protected function nullify(ArrayCollection $collection, $start, $end)
     {
         for ($i = $start; $i < $end; $i++) {
             $collection->set($i, null);
@@ -135,7 +134,7 @@ class CloseBracketParser extends AbstractInlineParser implements EnvironmentAwar
      *
      * @return array|bool
      */
-    private function tryParseLink(Cursor $cursor, ReferenceMap $referenceMap, Delimiter $opener, $startPos)
+    protected function tryParseLink(Cursor $cursor, ReferenceMap $referenceMap, Delimiter $opener, $startPos)
     {
         // Check to see if we have a link/image
         // Inline link?
@@ -155,7 +154,7 @@ class CloseBracketParser extends AbstractInlineParser implements EnvironmentAwar
      *
      * @return array|bool
      */
-    private function tryParseInlineLinkAndTitle(Cursor $cursor)
+    protected function tryParseInlineLinkAndTitle(Cursor $cursor)
     {
         $cursor->advance();
         $cursor->advanceToFirstNonSpace();
@@ -188,7 +187,7 @@ class CloseBracketParser extends AbstractInlineParser implements EnvironmentAwar
      *
      * @return Reference|null
      */
-    private function tryParseReference(Cursor $cursor, ReferenceMap $referenceMap, Delimiter $opener, $startPos)
+    protected function tryParseReference(Cursor $cursor, ReferenceMap $referenceMap, Delimiter $opener, $startPos)
     {
         $savePos = $cursor->saveState();
         $cursor->advanceToFirstNonSpace();
@@ -196,9 +195,9 @@ class CloseBracketParser extends AbstractInlineParser implements EnvironmentAwar
         $n = LinkParserHelper::parseLinkLabel($cursor);
         if ($n === 0 || $n === 2) {
             // Empty or missing second label
-            $reflabel = substr($cursor->getLine(), $opener->getIndex(), $startPos - $opener->getIndex());
+            $reflabel = mb_substr($cursor->getLine(), $opener->getIndex(), $startPos - $opener->getIndex(), 'utf-8');
         } else {
-            $reflabel = substr($cursor->getLine(), $beforeLabel + 1, $n - 2);
+            $reflabel = mb_substr($cursor->getLine(), $beforeLabel + 1, $n - 2, 'utf-8');
         }
 
         if ($n === 0) {
@@ -211,13 +210,13 @@ class CloseBracketParser extends AbstractInlineParser implements EnvironmentAwar
 
     /**
      * @param string $url
-     * @param InlineCollection $labelInlines
+     * @param ArrayCollection $labelInlines
      * @param string $title
      * @param bool $isImage
      *
      * @return AbstractWebResource
      */
-    private function createInline($url, InlineCollection $labelInlines, $title, $isImage)
+    protected function createInline($url, ArrayCollection $labelInlines, $title, $isImage)
     {
         if ($isImage) {
             return new Image($url, $labelInlines, $title);

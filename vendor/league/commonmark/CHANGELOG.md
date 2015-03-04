@@ -4,6 +4,68 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 
 ## [Unreleased][unreleased]
 
+## [0.7.1] - 2015-03-01
+### Added
+ - All references can now be obtained from the `ReferenceMap` via `listReferences()` (#73)
+ - Test against PHP 7.0 (nightly) but allow failures
+
+### Changed
+ - ListData::$start now defaults to null instead of 0 (#74)
+ - Replace references to HtmlRenderer with new HtmlRendererInterface
+
+### Fixed
+ - Fixed 0-based ordered lists starting at 1 instead of 0 (#74)
+ - Fixed errors parsing multi-byte characters (#78 and #79)
+
+## [0.7.0] - 2015-02-16
+### Added
+ - More unit tests to increase code coverage
+
+### Changed
+ - Enabled the InlineParserEngine to parse several non-special characters at once (performance boost)
+ - NewlineParser no longer attempts to parse spaces; look-behind is used instead (major performance boost)
+ - Moved closeUnmatchedBlocks into its own class
+ - Image and link elements now extend AbstractInlineContainer; label data is stored via $inlineContents instead
+ - Renamed AbstractInlineContainer::$inlineContents and its getter/setter
+
+### Removed
+ - Removed the InlineCollection class
+ - Removed the unused ArrayCollection::splice() method
+ - Removed impossible-to-reach code in Cursor::advanceToFirstNonSpace
+ - Removed unnecessary test from the InlineParserEngine
+ - Removed unnecessary/unused RegexHelper::getMainRegex() method
+
+## [0.6.1] - 2015-01-25
+### Changed
+ - Bumped spec target version to 0.17
+ - Updated emphasis parsing for underscores to prevent intra-word emphasis
+ - Defered closing of fenced code blocks
+
+## [0.6.0] - 2015-01-09
+### Added
+ - Bulk registration of parsers/renderers via extensions (#45)
+ - Proper UTF-8 support, especially in the Cursor; mbstring extension is now required (#49)
+ - Environment is now configurable; options can be accessed in its parsers/renderers (#56)
+ - Added some unit tests 
+
+### Changed
+ - Bumped spec target version to 0.15 (#50)
+ - Parsers/renderers are now lazy-initialized (#52)
+ - Some private elements are now protected for easier extending, especially on Element classes (#53)
+ - Renderer option keys changed from camelCase to underscore_case (#56) 
+ - Moved CommonMark parser/render definitions into CommonMarkCoreExtension
+
+### Fixed
+ - Improved parsing of emphasis around punctuation
+ - Improved regexes for CDATA and HTML comments
+ - Fixed issue with HTML content that is considered false in loose comparisons, like `'0'` (#55)
+ - Fixed DocParser trying to add empty strings to closed containers (#58)
+ - Fixed incorrect use of a null parameter value in the HtmlElementTest
+
+### Removed
+ - Removed unused ReferenceDefinition* classes (#51)
+ - Removed UnicodeCaseFolder in favor of mb_strtoupper
+
 ## [0.5.1] - 2014-12-27
 ### Fixed
  - Fixed infinite loop and link-in-link-in-image parsing (#37)
@@ -97,7 +159,11 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 ### Added
  - Initial commit (compatible with jgm/stmd:spec.txt @ 0275f34)
 
-[unreleased]: https://github.com/thephpleague/commonmark/compare/0.5.1...HEAD
+[unreleased]: https://github.com/thephpleague/commonmark/compare/0.7.1...HEAD
+[0.7.1]: https://github.com/thephpleague/commonmark/compare/0.7.0...0.7.1
+[0.7.0]: https://github.com/thephpleague/commonmark/compare/0.6.1...0.7.0
+[0.6.1]: https://github.com/thephpleague/commonmark/compare/0.6.0...0.6.1
+[0.6.0]: https://github.com/thephpleague/commonmark/compare/0.5.1...0.6.0
 [0.5.1]: https://github.com/thephpleague/commonmark/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/thephpleague/commonmark/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/thephpleague/commonmark/compare/0.3.0...0.4.0

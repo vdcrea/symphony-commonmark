@@ -5,7 +5,7 @@
  *
  * (c) Colin O'Dell <colinodell@gmail.com>
  *
- * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmarkjs)
+ * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmark-js)
  *  - (c) John MacFarlane
  *
  * For the full copyright and license information, please view the LICENSE
@@ -22,7 +22,7 @@ class ListItem extends AbstractBlock
     /**
      * @var ListData
      */
-    private $data;
+    protected $data;
 
     public function __construct(ListData $listData)
     {

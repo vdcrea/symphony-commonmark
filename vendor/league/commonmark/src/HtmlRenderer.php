@@ -5,7 +5,7 @@
  *
  * (c) Colin O'Dell <colinodell@gmail.com>
  *
- * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmarkjs)
+ * Original code based on the CommonMark JS reference parser (http://bitly.com/commonmark-js)
  *  - (c) John MacFarlane
  *
  * For the full copyright and license information, please view the LICENSE
@@ -15,13 +15,12 @@
 namespace League\CommonMark;
 
 use League\CommonMark\Block\Element\AbstractBlock;
-use League\CommonMark\Block\Element\ReferenceDefinition;
 use League\CommonMark\Inline\Element\AbstractInline;
 
 /**
  * Renders a parsed AST to HTML
  */
-class HtmlRenderer
+class HtmlRenderer implements HtmlRendererInterface
 {
     /**
      * @var Environment
@@ -29,33 +28,22 @@ class HtmlRenderer
     protected $environment;
 
     /**
-     * @var array
+     * @param Environment $environment
      */
-    protected $options;
-
-    /**
-     * @param array $options
-     */
-    public function __construct(Environment $environment, array $options = array())
+    public function __construct(Environment $environment)
     {
         $this->environment = $environment;
-
-        $defaults = array(
-            'blockSeparator' => "\n",
-            'innerSeparator' => "\n",
-            'softBreak' => "\n"
-        );
-        $this->options = array_merge($defaults, $options);
     }
 
     /**
      * @param string $option
+     * @param mixed|null $default
      *
      * @return mixed|null
      */
-    public function getOption($option)
+    public function getOption($option, $default = null)
     {
-        return $this->options[$option];
+        return $this->environment->getConfig('renderer/' . $option, $default);
     }
 
     /**
@@ -135,11 +123,11 @@ class HtmlRenderer
     {
         $result = array();
         foreach ($blocks as $block) {
-            if (!($block instanceof ReferenceDefinition)) {
-                $result[] = $this->renderBlock($block, $inTightList);
-            }
+            $result[] = $this->renderBlock($block, $inTightList);
         }
 
-        return implode($this->options['blockSeparator'], $result);
+        $separator = $this->getOption('block_separator', "\n");
+
+        return implode($separator, $result);
     }
 }

@@ -1,4 +1,4 @@
-# CommonMark
+# league/commonmark
 
 [![Latest Version](https://img.shields.io/packagist/v/league/commonmark.svg?style=flat-square)](https://packagist.org/packages/league/commonmark)
 [![Software License](http://img.shields.io/badge/License-BSD--3-brightgreen.svg?style=flat-square)](LICENSE)
@@ -7,15 +7,14 @@
 [![Quality Score](https://img.shields.io/scrutinizer/g/thephpleague/commonmark.svg?style=flat-square)](https://scrutinizer-ci.com/g/thephpleague/commonmark)
 [![Total Downloads](https://img.shields.io/packagist/dt/league/commonmark.svg?style=flat-square)](https://packagist.org/packages/league/commonmark)
 
-**league/commonmark** is a Markdown parser for PHP which supports the full [CommonMark] spec.  It is directly based the [CommonMark JS reference implementation][commonmark.js] by [John MacFarlane] \([@jgm]\).
+**league/commonmark** is a Markdown parser for PHP which supports the full [CommonMark] spec.  It is based on the [CommonMark JS reference implementation][commonmark.js] by [John MacFarlane] \([@jgm]\).
 
 ## Goals
 
-While other Markdown parsers focus on speed, or try to enable a wide range of flavors, this parser will 
-strive to match the C and JavaScript implementations of CommonMark to make a logical and similar API.
-
-We will always focus on CommonMark compliance over speed, but performance improvements will definitely 
-happen during efforts to reach v1.0.0 and afterwards.
+* Fully support the CommonMark spec (100% compliance)
+* Match the C and JavaScript implementations of CommonMark to make a logical and similar API
+* Continuously improve performance without sacrificing quality or compliance
+* Provide an extensible parser/renderer which users may customize as needed
 
 ## Installation
 
@@ -107,9 +106,13 @@ The following table shows which versions of league/commonmark are compatible wit
     </thead>
     <tbody>
         <tr>
-            <td><strong>0.7.0</strong><br>0.6.1</td>
-            <td><strong><a href="http://spec.commonmark.org/0.17/">0.17</a></strong></td>
-            <td>current spec (as of Jan 25 '15)</td>
+            <td><strong>0.8.0</strong></td>
+            <td><strong><a href="http://spec.commonmark.org/0.19/">0.19</a></strong>
+            <td>current spec (as of Apr 29 '15)</td>
+        <tr>
+            <td>0.7.2<br>0.7.1<br>0.7.0<br>0.6.1</td>
+            <td><a href="http://spec.commonmark.org/0.18/">0.18</a><br><a href="http://spec.commonmark.org/0.17/">0.17</a></td>
+            <td></td>
         </tr>
         <tr>
             <td>0.6.0</td>

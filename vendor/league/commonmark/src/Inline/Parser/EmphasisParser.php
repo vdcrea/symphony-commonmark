@@ -46,7 +46,10 @@ class EmphasisParser extends AbstractInlineParser
         $numDelims = 0;
 
         $cursor = $inlineContext->getCursor();
-        $charBefore = $cursor->peek(-1) ?: "\n";
+        $charBefore = $cursor->peek(-1);
+        if ($charBefore === null) {
+            $charBefore = "\n";
+        }
 
         while ($cursor->peek($numDelims) === $character) {
             ++$numDelims;
@@ -54,7 +57,10 @@ class EmphasisParser extends AbstractInlineParser
 
         $cursor->advanceBy($numDelims);
 
-        $charAfter = $cursor->getCharacter() ?: "\n";
+        $charAfter = $cursor->getCharacter();
+        if ($charAfter === null) {
+            $charAfter = "\n";
+        }
 
         $leftFlanking = $numDelims > 0 && !preg_match('/\pZ|\s/u', $charAfter) &&
             !(preg_match(RegexHelper::REGEX_PUNCTUATION, $charAfter) &&
@@ -67,8 +73,8 @@ class EmphasisParser extends AbstractInlineParser
             !(preg_match(RegexHelper::REGEX_PUNCTUATION, $charAfter)));
 
         if ($character === '_') {
-            $canOpen = $leftFlanking && !$rightFlanking;
-            $canClose = $rightFlanking && !$leftFlanking;
+            $canOpen = $leftFlanking && (!$rightFlanking || preg_match(RegexHelper::REGEX_PUNCTUATION, $charBefore));
+            $canClose = $rightFlanking && (!$leftFlanking || preg_match(RegexHelper::REGEX_PUNCTUATION, $charAfter));
         } else {
             $canOpen = $leftFlanking;
             $canClose = $rightFlanking;

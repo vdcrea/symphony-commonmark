@@ -24,6 +24,13 @@ use League\CommonMark\Util\ArrayCollection;
 abstract class AbstractBlock
 {
     /**
+     * Used for storage of arbitrary data.
+     *
+     * @var array
+     */
+    public $data = [];
+
+    /**
      * @var ArrayCollection|AbstractBlock[]
      */
     protected $children;

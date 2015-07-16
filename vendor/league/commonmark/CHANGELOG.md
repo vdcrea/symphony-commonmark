@@ -4,6 +4,25 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 
 ## [Unreleased][unreleased]
 
+## [0.9.0] - 2015-06-18
+### Added
+ - Added public $data array to block elements (#95)
+ - Added `isIndented` helper method to `Cursor`
+ - Added a new `Converter` base class which `CommonMarkConverter` extends from (#105)
+
+### Changed
+ - Bumped spec target version to 0.20 (#112)
+ - Renamed ListBlock::$data and ListItem::$data to $listData
+ - Require link labels to contain non-whitespace (jgm/CommonMark#322)
+ - Use U+FFFD for entities resolving to 0 (jgm/CommonMark#323)
+ - Moved `IndentedCodeParser::CODE_INDENT_LEVEL` to `Cursor::INDENT_LEVEL`
+ - Changed arrays to short syntax (#116)
+ - Improved efficiency of DelimiterStack iteration (jgm/commonmark.js#43)
+
+### Fixed
+ - Fixed open block tag followed by newline not being recognized (jgm/CommonMark#324)
+ - Fixed indented lists sometimes being parsed incorrectly (jgm/commonmark.js#42)
+
 ## [0.8.0] - 2015-04-29
 ### Added
  - Allow swapping built-in renderers without using their fully qualified names (#84)
@@ -186,7 +205,8 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 ### Added
  - Initial commit (compatible with jgm/stmd:spec.txt @ 0275f34)
 
-[unreleased]: https://github.com/thephpleague/commonmark/compare/0.8.0...HEAD
+[unreleased]: https://github.com/thephpleague/commonmark/compare/0.9.0...HEAD
+[0.9.0]: https://github.com/thephpleague/commonmark/compare/0.8.0...0.9.0
 [0.8.0]: https://github.com/thephpleague/commonmark/compare/0.7.2...0.8.0
 [0.7.2]: https://github.com/thephpleague/commonmark/compare/0.7.1...0.7.2
 [0.7.1]: https://github.com/thephpleague/commonmark/compare/0.7.0...0.7.1

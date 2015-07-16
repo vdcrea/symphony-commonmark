@@ -15,6 +15,8 @@ use League\CommonMark\Util\RegexHelper;
 
 class Cursor
 {
+    const INDENT_LEVEL = 4;
+
     /**
      * @var string
      */
@@ -85,6 +87,16 @@ class Cursor
     public function getIndent()
     {
         return $this->getFirstNonSpacePosition() - $this->currentPosition;
+    }
+
+    /**
+     * Whether the cursor is indented to INDENT_LEVEL
+     *
+     * @return bool
+     */
+    public function isIndented()
+    {
+        return $this->getIndent() >= self::INDENT_LEVEL;
     }
 
     /**
@@ -212,7 +224,7 @@ class Cursor
      */
     public function advanceToFirstNonSpace()
     {
-        $matches = array();
+        $matches = [];
         preg_match('/^ *(?:\n *)?/', $this->getRemainder(), $matches, PREG_OFFSET_CAPTURE);
 
         // [0][0] contains the matched text
@@ -269,7 +281,7 @@ class Cursor
     {
         $subject = $this->getRemainder();
 
-        $matches = array();
+        $matches = [];
         if (!preg_match($regex, $subject, $matches, PREG_OFFSET_CAPTURE)) {
             return null;
         }

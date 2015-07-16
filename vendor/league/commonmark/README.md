@@ -1,5 +1,7 @@
 # league/commonmark
 
+[![Join the chat at https://gitter.im/thephpleague/commonmark](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/thephpleague/commonmark?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Latest Version](https://img.shields.io/packagist/v/league/commonmark.svg?style=flat-square)](https://packagist.org/packages/league/commonmark)
 [![Software License](http://img.shields.io/badge/License-BSD--3-brightgreen.svg?style=flat-square)](LICENSE)
 [![Build Status](https://img.shields.io/travis/thephpleague/commonmark/master.svg?style=flat-square)](https://travis-ci.org/thephpleague/commonmark)
@@ -86,9 +88,23 @@ The [documentation][docs] provides several [customization examples][docs-example
 
 You can also reference the core CommonMark parsers/renderers as they use the same functionality available to you.
 
+## Documentation
+
+Documentation can be found at [commonmark.thephpleague.com][docs].
+
+## Integrations
+
+- [CakePHP 3](https://github.com/gourmet/commonmark)
+- [Laravel 4 & 5](https://github.com/GrahamCampbell/Laravel-Markdown)
+- [Sculpin](https://github.com/bcremer/sculpin-commonmark-bundle)
+- [Twig](https://github.com/webuni/commonmark-twig-renderer)
+
 ## Community Extensions
 
-Custom parsers/renderers can be bundled into extensions which extend CommonMark.  The wiki lists such [community extensions](https://github.com/thephpleague/commonmark/wiki/Community-Extensions) that you may find interesting.
+Custom parsers/renderers can be bundled into extensions which extend CommonMark.  Here are some that you may find interesting:
+
+ - [Markua](https://github.com/dshafik/markua) - Markdown parser for PHP which intends to support the full Markua spec.
+ - [CommonMark Table Extension](https://github.com/webuni/commonmark-table-extension) - Adds the ability to create tables in CommonMark documents.
 
 ## Compatibility with CommonMark ##
 
@@ -106,9 +122,14 @@ The following table shows which versions of league/commonmark are compatible wit
     </thead>
     <tbody>
         <tr>
-            <td><strong>0.8.0</strong></td>
-            <td><strong><a href="http://spec.commonmark.org/0.19/">0.19</a></strong>
-            <td>current spec (as of Apr 29 '15)</td>
+            <td><strong>0.9.0</strong></td>
+            <td><strong><a href="http://spec.commonmark.org/0.20/">0.20</a></strong>
+            <td>current spec (as of Jun 18 '15)</td>
+        </tr>
+        <tr>
+            <td>0.8.0</td>
+            <td><a href="http://spec.commonmark.org/0.19/">0.19</a>
+            <td></td>
         <tr>
             <td>0.7.2<br>0.7.1<br>0.7.0<br>0.6.1</td>
             <td><a href="http://spec.commonmark.org/0.18/">0.18</a><br><a href="http://spec.commonmark.org/0.17/">0.17</a></td>
@@ -144,10 +165,6 @@ The following table shows which versions of league/commonmark are compatible wit
 
 This package is **not** part of CommonMark, but rather a compatible derivative.
 
-## Documentation
-
-Documentation can be found at [commonmark.thephpleague.com][docs].
-
 ## Testing
 
 ``` bash
@@ -159,7 +176,7 @@ This will also test league/commonmark against the latest supported spec.
 ## Performance Benchmarks
 
 You can compare the performance of **league/commonmark** to other popular parsers by running the included benchmark tool:
- 
+
 ``` bash
 $ ./tests/benchmark/benchmark.php
 ```

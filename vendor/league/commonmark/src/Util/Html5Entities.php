@@ -16,7 +16,7 @@ namespace League\CommonMark\Util;
 
 class Html5Entities
 {
-    public static $entitiesByName = array(
+    public static $entitiesByName = [
         'Aacute' => 'Á',
         'Aacut' => 'Á',
         'aacute' => 'á',
@@ -2240,7 +2240,7 @@ class Html5Entities
         'zscr' => '𝓏',
         'zwj' => '‍',
         'zwnj' => '‌'
-    );
+    ];
 
     /**
      * @param string $entity
@@ -2276,14 +2276,14 @@ class Html5Entities
      */
     public static function fromDecimal($number)
     {
-        // Only convert code points within planes 0-2
-        if ($number > 0x2FFFF) {
+        // Only convert code points within planes 0-2, excluding NULL
+        if ($number == 0 || $number > 0x2FFFF) {
             return self::fromHex('fffd');
         }
 
         $entity = '&#' . $number . ';';
 
-        $converted = mb_decode_numericentity($entity, array(0x0, 0x2FFFF, 0, 0xFFFF), 'UTF-8');
+        $converted = mb_decode_numericentity($entity, [0x0, 0x2FFFF, 0, 0xFFFF], 'UTF-8');
 
         if ($converted === $entity) {
             return self::fromHex('fffd');

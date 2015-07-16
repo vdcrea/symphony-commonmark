@@ -1,17 +1,17 @@
 [
     {
         "name": "league/commonmark",
-        "version": "0.8.0",
-        "version_normalized": "0.8.0.0",
+        "version": "0.9.0",
+        "version_normalized": "0.9.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/thephpleague/commonmark.git",
-            "reference": "91696c88df298f75fdd2075e4bb19c6dbd7338ca"
+            "reference": "8b681a57233f00578195573d7d251c2f143c1a5d"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/91696c88df298f75fdd2075e4bb19c6dbd7338ca",
-            "reference": "91696c88df298f75fdd2075e4bb19c6dbd7338ca",
+            "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/8b681a57233f00578195573d7d251c2f143c1a5d",
+            "reference": "8b681a57233f00578195573d7d251c2f143c1a5d",
             "shasum": ""
         },
         "require": {
@@ -23,17 +23,17 @@
         },
         "require-dev": {
             "erusev/parsedown": "~1.0",
-            "jgm/commonmark": "0.19",
+            "jgm/commonmark": "0.20",
             "michelf/php-markdown": "~1.4",
             "phpunit/phpunit": "~4.3",
             "phpunit/phpunit-mock-objects": "2.3.0",
             "symfony/finder": "~2.3"
         },
-        "time": "2015-04-29 18:01:46",
+        "time": "2015-06-19 00:39:51",
         "type": "library",
         "extra": {
             "branch-alias": {
-                "dev-master": "0.8-dev"
+                "dev-master": "0.9-dev"
             }
         },
         "installation-source": "dist",

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<extension id="commonmark" status="experimental" xmlns="http://getsymphony.com/schemas/extension/1.0">
+<extension id="commonmark" status="experimental" xmlns="http://getsymphony.com/schemas/extension/1.0/">
     <name>CommonMark</name>
     <description>CommonMark text formatter.</description>
-    <repo type="github">https://github.com/jensscherbl/commonmark</repo>
+    <repo type="github">http://github.com/jensscherbl/commonmark/</repo>
     <types>
         <type>Text Formatter</type>
     </types>
@@ -12,22 +12,11 @@
         </author>
     </authors>
     <releases>
-        <release version="0.1.5" date="2015-05-03" min="2.5.x" max="2.x.x">
-            - Updated dependencies
-        </release>
-        <release version="0.1.4" date="2015-03-04" min="2.5.x" max="2.x.x">
-            - Updated dependencies
-        </release>
-        <release version="0.1.3" date="2014-12-30" min="2.5.x" max="2.x.x">
-            - Updated dependencies
-        </release>
-        <release version="0.1.2" date="2014-12-07" min="2.5.x" max="2.x.x">
-            - Fixed autoloading issue
-            - Fixed accidental newline
-        </release>
-        <release version="0.1.1" date="2014-12-04" min="2.5.x" max="2.x.x">
-            - Updated dependencies
-        </release>
+        <release version="0.1.5" date="2015-05-03" min="2.5.x" max="2.x.x"/>
+        <release version="0.1.4" date="2015-03-04" min="2.5.x" max="2.x.x"/>
+        <release version="0.1.3" date="2014-12-30" min="2.5.x" max="2.x.x"/>
+        <release version="0.1.2" date="2014-12-07" min="2.5.x" max="2.x.x"/>
+        <release version="0.1.1" date="2014-12-04" min="2.5.x" max="2.x.x"/>
         <release version="0.1.0" date="2014-10-09" min="2.5.x" max="2.x.x"/>
     </releases>
 </extension>

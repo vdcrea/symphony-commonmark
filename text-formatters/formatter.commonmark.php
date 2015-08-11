@@ -1,6 +1,6 @@
 <?php
 
-require_once EXTENSIONS . '/commonmark/vendor/autoload.php';
+use League\CommonMark\CommonMarkConverter;
 
 class FormatterCommonMark extends TextFormatter
 {
@@ -8,15 +8,12 @@ class FormatterCommonMark extends TextFormatter
 
     public function __construct()
     {
-        if (!$this->converter) {
-
-            $this->converter = new League\CommonMark\CommonMarkConverter();
-        }
+        $this->converter = new CommonMarkConverter();
     }
 
     public function about()
     {
-        return array('name' => 'CommonMark');
+        return [ 'name' => 'CommonMark' ];
     }
 
     public function run($string)

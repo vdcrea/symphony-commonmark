@@ -1,6 +1,7 @@
 {
-    "require" : {
-
-        "league/commonmark": "*"
+    "require" :
+    {
+        "php"               : "5.6.*",
+        "league/commonmark" : "0.10.*"
     }
 }

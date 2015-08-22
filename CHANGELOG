@@ -1,5 +1,11 @@
 Changelog
 
+1.0.0 (2015-08-22)
+
+- Supports CommonMark 0.21.
+- Removed dependencies.
+- Updated requirements.
+
 0.1.6 (2015-07-16)
 
 - Supports CommonMark 0.20.
@@ -28,6 +34,7 @@ Changelog
 
 0.1.0 (2014-10-09)
 
+- Requires PHP 5.6.x.
 - Requires Symphony 2.5.x.
 - Supports CommonMark 0.01.
 - Initial release.
